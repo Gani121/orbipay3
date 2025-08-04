@@ -2,28 +2,61 @@ import 'package:flutter/material.dart';
 import '../models/menu_item.dart';
 import '../models/objectbox.g.dart';
 import 'package:objectbox/objectbox.dart';
+import 'add_item_page.dart';
 
-class ItemLedgerPage extends StatelessWidget {
- final MenuItem item;
-  final Store store;  // Add this line
+class ItemLedgerPage extends StatefulWidget {
+  final MenuItem item;
+  final Store store;
 
   const ItemLedgerPage({
     Key? key,
     required this.item,
-    required this.store,  // Add this
+    required this.store,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final transactions = List.generate(6, (index) {
+  State<ItemLedgerPage> createState() => _ItemLedgerPageState();
+}
+
+class _ItemLedgerPageState extends State<ItemLedgerPage> {
+  late MenuItem currentItem;
+  late List<Map<String, dynamic>> transactions;
+
+  @override
+  void initState() {
+    super.initState();
+    currentItem = widget.item;
+    _generateTransactions();
+     
+  }
+
+  
+
+  void _generateTransactions() {
+    transactions = List.generate(6, (index) {
       return {
         'type': 'Sale',
         'date': '2024-12-${10 + index}',
         'quantity': index + 1,
-        'stock': (item.adjustStock ?? 0) - index,
+        'stock': (currentItem.adjustStock ?? 0) - index,
       };
     });
+  }
 
+  void _refreshItem() {
+    final box = widget.store.box<MenuItem>();
+    final updated = box.get(currentItem.id);
+    if (updated != null) {
+      setState(() {
+        currentItem = updated;
+        _generateTransactions();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var item = currentItem; // ✅ always use this reference
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -61,9 +94,37 @@ class ItemLedgerPage extends StatelessWidget {
         backgroundColor: Colors.purple.shade700,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white ),
-            onPressed: () {
-              // TODO: Navigate to edit page
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: () async {
+              final updatedItem = await Navigator.push<MenuItem?>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddItemPage(
+                    store: widget.store,
+                    item: item,
+                  ),
+                ),
+              );
+
+            if (updatedItem != null) {
+                final box = widget.store.box<MenuItem>();
+                final freshItem = box.get(updatedItem.id);
+                //print('🔥 Fresh Item Fetched: $freshItem');
+
+                if (freshItem != null) {
+                  setState(() {
+                    item = freshItem;
+                    _generateTransactions();
+                    //print('✅ setState called with: ${item.name}');
+                  });
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() {});
+                });
+
+                }
+              }
+
+
             },
           ),
           IconButton(
@@ -91,20 +152,18 @@ class ItemLedgerPage extends StatelessWidget {
               );
 
               if (confirmed == true) {
-                // Access the ObjectBox store and delete the item
-                final box = store.box<MenuItem>();
+                final box = widget.store.box<MenuItem>();
                 final query = box.query(MenuItem_.name.equals(item.name)).build();
                 final itemsToDelete = query.find();
 
-                // 🗑️ Delete them
                 for (var target in itemsToDelete) {
                   box.remove(target.id);
                 }
 
-                query.close(); // Always close the query
-                Navigator.pop(context); // Close the ledger page
+                query.close();
+                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Item deleted successfully")),
+                  const SnackBar(content: Text("Item deleted successfully")),
                 );
               }
             },
@@ -130,30 +189,18 @@ class ItemLedgerPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.name, 
-                    style: const TextStyle(
-                      fontSize: 18, 
-                      fontWeight: FontWeight.bold
-                    )
-                  ),
+                  Text(item.name,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Text("Stock: ${item.adjustStock ?? 0}", 
-                    style: const TextStyle(
-                      fontSize: 16, 
-                      fontWeight: FontWeight.bold
-                    )
-                  ),
+                  Text("Stock: ${item.adjustStock ?? 0}",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
 
             // 📜 Transactions List
-            const Text("Recent Transactions", 
-              style: TextStyle(
-                fontSize: 18, 
-                fontWeight: FontWeight.bold
-              )
-            ),
+            const Text("Recent Transactions",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ListView.builder(
               shrinkWrap: true,
@@ -165,12 +212,8 @@ class ItemLedgerPage extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
                     leading: Icon(
-                      tx['type'] == 'Sale' 
-                        ? Icons.check_circle 
-                        : Icons.arrow_circle_up,
-                      color: tx['type'] == 'Sale' 
-                        ? Colors.green 
-                        : Colors.blue,
+                      tx['type'] == 'Sale' ? Icons.check_circle : Icons.arrow_circle_up,
+                      color: tx['type'] == 'Sale' ? Colors.green : Colors.blue,
                     ),
                     title: Text("${tx['type']} - Qty: ${tx['quantity']}"),
                     subtitle: Text("Date: ${tx['date']}"),

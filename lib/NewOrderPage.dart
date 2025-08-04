@@ -4,233 +4,919 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:test1/printer_setup_page.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'inventory/detailspage.dart';
 import 'bill_printer.dart'; // Adjust the import path
+import 'models/objectbox.g.dart';
+import '../models/menu_item.dart';
+import 'cartprovier/cart_provider.dart';
+import 'package:provider/provider.dart';
+
+import 'cartprovier/ObjectBoxService.dart';
+import 'dart:convert';  // For jsonEncode/jsonDecode
+
+import './inventory/add_item_page.dart';
+
 
 final printer = BillPrinter();
+
+bool isHoldEnabled = false;
+String? selectedCategory;
+
+
+
+
+
+// late final Store objectboxStore;
+
+
+// final objectboxStore1 = objectboxStore.box<MenuItem>();
+
+
 
 
 
 class NewOrderPage extends StatefulWidget {
+
+
+  //final Store store;
+  
+  const NewOrderPage({Key? key}) : super(key: key);
+
   @override
   _NewOrderPageState createState() => _NewOrderPageState();
 
 }
 
 class _NewOrderPageState extends State<NewOrderPage> {
-  final List<String> categories = [
-    "BEST SELLER ITEMS",
-    "01 SNACKS",
-    "02 MAINS",
-    "03 RICE PREPARATION",
-    "04 THALI",
-    "05 VEG SOUP",
-    "06 NON VEG SOUP",
-    "07 RICE VEG",
-    "08 NOODLES VEG",
-    "10 NOODLES NON VEG",
-    "11 STARTER VEG",
-    "12 STARTER NON VEG",
-  ];
+
+  final ScrollController _scrollController = ScrollController();
+final Map<String, GlobalKey> _categoryKeys = {};
+
+
+  List<String> categories = [];
+  //   "BEST SELLER ITEMS",
+  //   "01 SNACKS",
+  //   "02 MAINS",
+  //   "03 RICE PREPARATION",
+  //   "04 THALI",
+  //   "05 VEG SOUP",
+  //   "06 NON VEG SOUP",
+  //   "07 RICE VEG",
+  //   "08 NOODLES VEG",
+  //   "10 NOODLES NON VEG",
+  //   "11 STARTER VEG",
+  //   "12 STARTER NON VEG",
+  // ];
 
   BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   BluetoothDevice? selectedDevice;
 
-  final List<Map<String, dynamic>> items = [
-    // Fast Food (10 items)
-    {"name": "Veg Burger", "price": 80, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Fries", "price": 50, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Pizza", "price": 120, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Cheese Sandwich", "price": 60, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Paneer Wrap", "price": 90, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Samosa", "price": 20, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Hot Dog", "price": 100, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Veg Puff", "price": 25, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Spring Roll", "price": 70, "category": "Fast Food", "qty": 0, "selected": false},
-    {"name": "Aloo Tikki", "price": 45, "category": "Fast Food", "qty": 0, "selected": false},
+  
 
-// Beverages (10 items)
-    {"name": "Tea", "price": 20, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Coffee", "price": 30, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Coke", "price": 40, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Pepsi", "price": 40, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Lemonade", "price": 35, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Orange Juice", "price": 50, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Cold Coffee", "price": 60, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Milkshake", "price": 70, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Buttermilk", "price": 25, "category": "Beverages", "qty": 0, "selected": false},
-    {"name": "Iced Tea", "price": 45, "category": "Beverages", "qty": 0, "selected": false},
 
-// Starters (10 items)
-    {"name": "Paneer Tikka", "price": 150, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Chicken Tikka", "price": 180, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Veg Manchurian", "price": 130, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Chilli Paneer", "price": 140, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Hara Bhara Kebab", "price": 110, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Chicken 65", "price": 160, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Fish Fingers", "price": 170, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Crispy Corn", "price": 120, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Stuffed Mushrooms", "price": 150, "category": "Starters", "qty": 0, "selected": false},
-    {"name": "Seekh Kebab", "price": 180, "category": "Starters", "qty": 0, "selected": false},
 
-// Main Course (10 items)
-    {"name": "Dal Makhani", "price": 120, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Paneer Butter Masala", "price": 150, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Chicken Curry", "price": 180, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Veg Biryani", "price": 130, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Chicken Biryani", "price": 200, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Palak Paneer", "price": 140, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Rajma Chawal", "price": 110, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Kadhai Paneer", "price": 160, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Fish Curry", "price": 190, "category": "Main Course", "qty": 0, "selected": false},
-    {"name": "Mushroom Masala", "price": 150, "category": "Main Course", "qty": 0, "selected": false},
+  bool isGridView = true; // Add this as a state variable
 
-// Desserts (10 items)
-    {"name": "Gulab Jamun", "price": 40, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Rasmalai", "price": 50, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Ice Cream", "price": 60, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Chocolate Cake", "price": 90, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Jalebi", "price": 30, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Rasgulla", "price": 35, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Brownie", "price": 70, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Fruit Custard", "price": 50, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Kheer", "price": 45, "category": "Desserts", "qty": 0, "selected": false},
-    {"name": "Cheesecake", "price": 100, "category": "Desserts", "qty": 0, "selected": false},
+  String selectedStyle = "Restaurant Style"; // default fallback
 
-// South Indian (10 items)
-    {"name": "Dosa", "price": 80, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Idli", "price": 50, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Vada", "price": 40, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Uttapam", "price": 90, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Pongal", "price": 70, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Upma", "price": 60, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Masala Dosa", "price": 100, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Rava Dosa", "price": 110, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Onion Uttapam", "price": 95, "category": "South Indian", "qty": 0, "selected": false},
-    {"name": "Medu Vada", "price": 45, "category": "South Indian", "qty": 0, "selected": false},
+  
+  Widget _buildGridView() {
+  Map<String, List<Map<String, dynamic>>> groupedItems = {};
+  for (var item in filteredItems) {
+    String category = item["category"];
+    groupedItems.putIfAbsent(category, () => []).add(item);
+  }
 
-// Chinese (10 items)
-    {"name": "Veg Noodles", "price": 90, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Chicken Noodles", "price": 120, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Veg Fried Rice", "price": 100, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Chicken Fried Rice", "price": 130, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Manchow Soup", "price": 70, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Hot & Sour Soup", "price": 75, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Szechuan Noodles", "price": 110, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Hakka Noodles", "price": 95, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "American Chopsuey", "price": 140, "category": "Chinese", "qty": 0, "selected": false},
-    {"name": "Schezwan Fried Rice", "price": 125, "category": "Chinese", "qty": 0, "selected": false},
+  return ListView(
+    controller: _scrollController,
+    children: groupedItems.entries.map((entry) {
+      final category = entry.key;
+      final items = entry.value;
 
-// Italian (10 items)
-    {"name": "Pasta", "price": 120, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Spaghetti", "price": 130, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Margherita Pizza", "price": 150, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Garlic Bread", "price": 80, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Lasagna", "price": 180, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Risotto", "price": 160, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Fettuccine Alfredo", "price": 170, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Bruschetta", "price": 90, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Tiramisu", "price": 110, "category": "Italian", "qty": 0, "selected": false},
-    {"name": "Cannoli", "price": 95, "category": "Italian", "qty": 0, "selected": false},
-
-// Mexican (10 items)
-    {"name": "Tacos", "price": 100, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Burrito", "price": 120, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Quesadilla", "price": 110, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Nachos", "price": 90, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Enchiladas", "price": 140, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Fajitas", "price": 150, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Chimichanga", "price": 130, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Guacamole", "price": 70, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Salsa", "price": 50, "category": "Mexican", "qty": 0, "selected": false},
-    {"name": "Churros", "price": 80, "category": "Mexican", "qty": 0, "selected": false},
-
-// Japanese (10 items)
-    {"name": "Sushi", "price": 200, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Ramen", "price": 180, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Tempura", "price": 160, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Udon", "price": 150, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Miso Soup", "price": 90, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Teriyaki Chicken", "price": 190, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Gyoza", "price": 120, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Sashimi", "price": 220, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Yakitori", "price": 140, "category": "Japanese", "qty": 0, "selected": false},
-    {"name": "Matcha Ice Cream", "price": 110, "category": "Japanese", "qty": 0, "selected": false},
-
-// Thai (10 items)
-    {"name": "Pad Thai", "price": 150, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Tom Yum Soup", "price": 120, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Green Curry", "price": 160, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Red Curry", "price": 160, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Massaman Curry", "price": 170, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Som Tum", "price": 110, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Satay", "price": 130, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Khao Soi", "price": 140, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Mango Sticky Rice", "price": 90, "category": "Thai", "qty": 0, "selected": false},
-    {"name": "Thai Iced Tea", "price": 70, "category": "Thai", "qty": 0, "selected": false},
-
-// Continental (10 items)
-    {"name": "Grilled Chicken", "price": 220, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Beef Steak", "price": 280, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Fish & Chips", "price": 200, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Caesar Salad", "price": 150, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Mushroom Risotto", "price": 180, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Ratatouille", "price": 160, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Bouillabaisse", "price": 240, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Coq au Vin", "price": 260, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Quiche Lorraine", "price": 140, "category": "Continental", "qty": 0, "selected": false},
-    {"name": "Crème Brûlée", "price": 120, "category": "Continental", "qty": 0, "selected": false},
-
-// Indian Breads (10 items)
-    {"name": "Naan", "price": 30, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Roti", "price": 20, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Paratha", "price": 40, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Kulcha", "price": 35, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Poori", "price": 25, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Bhatura", "price": 45, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Missi Roti", "price": 30, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Tandoori Roti", "price": 25, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Lachha Paratha", "price": 50, "category": "Indian Breads", "qty": 0, "selected": false},
-    {"name": "Roomali Roti", "price": 20, "category": "Indian Breads", "qty": 0, "selected": false}
-  ];
-
-  Set<int> selectedIndexes = {};
-
-  void _onQtyTap(int index) async {
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        TextEditingController controller = TextEditingController(
-          text: items[index]['qty'].toString(),
-        );
-        return AlertDialog(
-          title: Text('Enter Quantity'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            autofocus: true,
+      return Column(
+        key: _categoryKeys.putIfAbsent(category, () => GlobalKey()),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Text(
+              category,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                int enteredQty = int.tryParse(controller.text) ?? 0;
-                Navigator.of(context).pop(enteredQty);
-              },
-              child: Text("OK"),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, index) {
+              return _buildItemCard(items[index]);
+            },
+          ),
+          Divider(color: Colors.blue.shade400, thickness: 1.5),
+        ],
+      );
+    }).toList(),
+  );
+}
+
+
+// Separate methods for cleaner code
+// Widget _buildGridView() {
+//   Map<String, List<Map<String, dynamic>>> groupedItems = {};
+//   for (var item in filteredItems) {
+//     String category = item["category"];
+//     if (!groupedItems.containsKey(category)) {
+//       groupedItems[category] = [];
+//     }
+//     groupedItems[category]!.add(item);
+//   }
+
+//   return ListView.builder(
+//     controller: _scrollController, // Add scroll controller
+//     itemCount: groupedItems.length,
+//     itemBuilder: (context, categoryIndex) {
+//       String category = groupedItems.keys.elementAt(categoryIndex);
+//       List<Map<String, dynamic>> categoryItems = groupedItems[category]!;
+
+//       return Column(
+//         key: _categoryKeys[category], // Add key for scrolling
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+//             child: Text(
+//               category,
+//               style: TextStyle(
+//                 fontSize: 16, 
+//                 fontWeight: FontWeight.bold, 
+//                 color: Colors.blue
+//               ),
+//             ),
+//           ),
+          
+//           GridView.custom(
+//             shrinkWrap: true,
+//             physics: NeverScrollableScrollPhysics(),
+//             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+//             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//               crossAxisCount: 3,
+//               crossAxisSpacing: 6,
+//               mainAxisSpacing: 6,
+//               childAspectRatio: 1,
+//             ),
+//             childrenDelegate: SliverChildBuilderDelegate(
+//               (context, index) => _buildItemCard(categoryItems[index]),
+//               childCount: categoryItems.length,
+//             ),
+//           ),
+//           Divider(color: Colors.blue.shade400, thickness: 1.5),
+//         ],
+//       );
+//     },
+//   );
+// }
+
+
+
+// Widget _imagebuildGridView() {
+//   Map<String, List<Map<String, dynamic>>> groupedItems = {};
+//   for (var item in filteredItems) {
+//     String category = item["category"];
+//     if (!groupedItems.containsKey(category)) {
+//       groupedItems[category] = [];
+//     }
+//     groupedItems[category]!.add(item);
+//   }
+
+//   return ListView.builder(
+//     controller: _scrollController,
+//     itemCount: groupedItems.length,
+//     itemBuilder: (context, categoryIndex) {
+//       String category = groupedItems.keys.elementAt(categoryIndex);
+//       List<Map<String, dynamic>> categoryItems = groupedItems[category]!;
+      
+
+//       return Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+//             child: Text(
+//               category,
+//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+//             ),
+//           ),
+          
+//           GridView.custom(
+//             shrinkWrap: true,
+//             physics: NeverScrollableScrollPhysics(),
+//             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+//             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//               crossAxisCount: 3,
+//               crossAxisSpacing: 6,
+//               mainAxisSpacing: 6,
+//               childAspectRatio: 0.5, // Adjusted for image aspect ratio
+//             ),
+//             childrenDelegate: SliverChildBuilderDelegate(
+//               (context, index) => _buildItemCardWithImage(categoryItems[index]),
+//               childCount: categoryItems.length,
+//             ),
+//           ),
+//           Divider(color: Colors.blue.shade400, thickness: 1.5),
+//         ],
+//       );
+//     },
+//   );
+// }
+
+
+Widget _imagebuildGridView() {
+  Map<String, List<Map<String, dynamic>>> groupedItems = {};
+  for (var item in filteredItems) {
+    String category = item["category"];
+    groupedItems.putIfAbsent(category, () => []).add(item);
+  }
+
+  return ListView(
+    controller: _scrollController,
+    children: groupedItems.entries.map((entry) {
+      final category = entry.key;
+      final items = entry.value;
+
+      return Column(
+        key: _categoryKeys.putIfAbsent(category, () => GlobalKey()),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Text(
+              category,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 0.50,
+            ),
+            itemBuilder: (context, index) {
+              return _buildItemCardWithImage(items[index]);
+            },
+          ),
+          Divider(color: Colors.blue.shade400, thickness: 1.5),
+        ],
+      );
+    }).toList(),
+  );
+}
+
+Widget _buildItemCardWithImage(Map<String, dynamic> item) {
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        if (item['selected'] == true) {
+          item['qty'] += 1;
+        } else {
+          item['selected'] = true;
+          item['qty'] = 1;
+        }
+        updateCart(item);
+      });
+    },
+    child: Container(
+      decoration: BoxDecoration(
+        color: item['selected'] == true ? Colors.green[100] : Colors.white,
+        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              Container(
+                height: 115,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                  image: item['imageUrl'] != null
+                      ? DecorationImage(
+                          image: NetworkImage(item['imageUrl']),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                  //color: item['imageUrl'] == null ? Colors.grey[200] : null,
+                ),
+                child: item['imageUrl'] == null
+                    ? Center(child: Icon(Icons.image, color: Colors.grey))
+                    : null,
+              ),
+
+              // Item Details
+              Padding(
+                padding: EdgeInsets.all(6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item["name"],
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildPriceTag(item),
+                        _buildQuantitySelector(item),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Close button
+          if (item['selected'] == true)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    item['selected'] = false;
+                    item['qty'] = 0;
+                    updateCart(item);
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.close, size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildListView() {
+  Map<String, List<Map<String, dynamic>>> groupedItems = {};
+  for (var item in filteredItems) {
+    String category = item["category"];
+    groupedItems.putIfAbsent(category, () => []).add(item);
+  }
+
+  return SingleChildScrollView(
+    controller: _scrollController,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: groupedItems.entries.map((entry) {
+        String category = entry.key;
+        List<Map<String, dynamic>> categoryItems = entry.value;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Text(
+                category,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+
+            // Item List
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: categoryItems.length,
+              itemBuilder: (context, index) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: _buildItemCard(categoryItems[index], isList: true),
+              ),
+            ),
+
+            // Divider
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Divider(color: Colors.blue.shade400, thickness: 1.5),
             ),
           ],
         );
-      },
+      }).toList(),
+    ),
+  );
+}
+
+// Widget _buildItemCard(Map<String, dynamic> item, {bool isList = false}) {
+//   return GestureDetector(
+//     onTap: () {
+//       setState(() {
+//         if (item['selected'] == true) {
+//           item['qty'] += 1; // increase qty
+//         } else {
+//           item['selected'] = true;
+//           item['qty'] = 1;
+//         }
+//         updateCart(item);
+//       });
+//     },
+//     child: Stack(
+//       children: [
+//         Container(
+//           decoration: BoxDecoration(
+//             color: item['selected'] == true ? Colors.green[100] : Colors.white,
+//             border: Border.all(color: Colors.black12),
+//             borderRadius: BorderRadius.circular(4),
+//           ),
+//           padding: EdgeInsets.all(isList ? 12 : 8),
+//           child: isList ? _buildListItem(item) : _buildGridItem(item),
+//         ),
+        
+//         // Close button - only visible when item is selected
+//         if (item['selected'] == true)
+//           Positioned(
+//             top: 2,
+//             right: 2,
+//             child: GestureDetector(
+//               onTap: () {
+//                 setState(() {
+//                   item['selected'] = false;
+//                   item['qty'] = 0;
+//                   updateCart(item);
+//                 });
+//               },
+//               child: Container(
+//                 padding: EdgeInsets.all(2),
+//                 decoration: BoxDecoration(
+//                   color: Colors.red,
+//                   shape: BoxShape.circle,
+//                 ),
+//                 child: Icon(Icons.close, size: 18, color: Colors.white),
+//               ),
+//             ),
+//           ),
+//       ],
+//     ),
+//   );
+// }
+
+
+Widget _buildGridItem(Map<String, dynamic> item) {
+  return Column(
+    children: [
+      Flexible(
+        child: Text(
+          item["name"],
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+          softWrap: true,
+          overflow: TextOverflow.visible,
+          maxLines: 3,
+        ),
+      ),
+      Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildQuantitySelector(item),
+          _buildPriceTag(item),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget _buildListItem(Map<String, dynamic> item) {
+  return Row(
+    children: [
+      Expanded(
+        child: Text(
+          item["name"],
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      _buildPriceTag(item),
+      SizedBox(width: 12),
+      _buildQuantitySelector(item),
+    ],
+  );
+}
+
+
+
+Widget _buildQuantitySelector(Map<String, dynamic> item) {
+  return GestureDetector(
+    onTap: () async {
+      TextEditingController _controller = TextEditingController(
+        text: (item['qty'] ?? 0).toString(),
+      );
+
+      final newQuantity = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Enter Quantity"),
+            content: TextField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(hintText: "Enter quantity"),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                child: Text("Cancel"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              ElevatedButton(
+                child: Text("OK"),
+                onPressed: () => Navigator.of(context).pop(_controller.text),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (newQuantity != null && newQuantity.isNotEmpty) {
+        setState(() {
+          item['qty'] = int.tryParse(newQuantity) ?? 0;
+          item['selected'] = item['qty'] > 0; // Update selected state
+          updateCart(item); // Update the cart with new quantity
+        });
+      }
+    },
+    child: Container(
+      width: 30,
+      height: 25,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black26),
+        color: item['qty'] == 0 ? Colors.grey[200] : Colors.green[300],
+      ),
+      child: Center(
+        child: FittedBox(
+          child: Text(
+            (item['qty'] ?? 0).toString(),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+Widget _buildItemCard(Map<String, dynamic> item, {bool isList = false}) {
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        // Always increment quantity when item is tapped, whether selected or not
+        item['qty'] = (item['qty'] ?? 0) + 1;
+        item['selected'] = true; // Mark as selected
+        updateCart(item);
+      });
+    },
+    child: Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: item['selected'] == true ? Colors.green[100] : Colors.white,
+            border: Border.all(color: Colors.black12),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          padding: EdgeInsets.all(isList ? 12 : 8),
+          child: isList ? _buildListItem(item) : _buildGridItem(item),
+        ),
+        
+        if (item['selected'] == true)
+          Positioned(
+            top: 2,
+            right: 2,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  item['selected'] = false;
+                  item['qty'] = 0;
+                  updateCart(item);
+                });
+              },
+              child: Container(
+                padding: EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.close, size: 18, color: Colors.white),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+
+// Widget _buildPriceTag(Map<String, dynamic> item) {
+//   return DottedBorder(
+//     color: Colors.black54,
+//     strokeWidth: 1,
+//     dashPattern: [4, 2],
+//     radius: Radius.circular(4),
+//     child: Container(
+//       //padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//       child: Text(
+//         "${item["sellPrice"]}",
+//         style: TextStyle(
+//           fontSize: 14,
+//           fontWeight: FontWeight.bold,
+//         ),
+//       ),
+//     ),
+//   );
+// }
+
+
+Widget _buildPriceTag(Map<String, dynamic> item) {
+  return FutureBuilder<String?>(
+    future: _getBillingType(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return SizedBox(); // or show a loading indicator
+      }
+
+      String billingType = snapshot.data!;
+      String price = item["sellPrice"] ?? 0;
+
+      if (billingType == "REGULAR") {
+        price = item["sellPrice"] ?? 0;
+      } else if (billingType == "AC") {
+        price = item["acSellPrice"] ?? item["sellPrice"] ?? 0;
+      } else if (billingType == "Non-Ac") {
+        price = item["nonAcSellPrice"] ?? item["sellPrice"] ?? 0;
+      }
+      else if (billingType == "online-sale") {
+        price = item["onlineSellPrice"] ?? item["sellPrice"] ?? 0;
+      }
+       else if (billingType == "online Delivery Price (parcel)") {
+        price = item["onlineDeliveryPrice"] ?? item["sellPrice"] ?? 0;
+      }
+
+      return DottedBorder(
+        color: Colors.black54,
+        strokeWidth: 1,
+        dashPattern: [4, 2],
+        radius: Radius.circular(4),
+        child: Container(
+          //padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Text(
+            "₹ ${price}",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<String?> _getBillingType() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('selectedBillingType') ?? "REGULAR";
+}
+
+
+
+
+  Set<int> selectedIndexes = {};
+
+   late final Box<MenuItem> _menuItemBox;
+
+   bool isSearching= false;
+   final TextEditingController _searchController = TextEditingController();
+
+
+late final List<MenuItem> _items;
+
+late final List<Map<String, dynamic>> items = _items.map((item) => item.toMap()).toList();
+late List<Map<String, dynamic>> filteredItems=List.from(items); // Mutable filtered list
+
+String _billingType = "";
+
+  List<String> _extractCategories(List<MenuItem> items) {
+    return items
+        .map((item) => item.category)
+        .toSet()
+        .toList()
+        ..sort();
+  }
+
+
+@override
+void initState() {
+  super.initState();
+  loadSelectedStyle();
+  final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+  _menuItemBox = store.box<MenuItem>();
+ 
+  _loadSelectionState();
+   _loadItems();
+   _loadBillingType();
+  
+  // Add listener to cart changes
+  final cartProvider = Provider.of<CartProvider>(context, listen: false);
+  cartProvider.addListener(_handleCartChange);
+
+  // Initialize category keys
+  for (var category in categories) {
+    _categoryKeys[category] = GlobalKey();
+  }
+}
+
+
+void _loadBillingType() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    _billingType = prefs.getString('selectedBillingType') ?? "REGULAR";
+  });
+}
+
+void scrollToCategory(String category) async {
+  final key = _categoryKeys[category];
+  if (key == null || !_scrollController.hasClients) return;
+
+  print("Initiating scroll to category: $category");
+
+  // Step 1: Go to top
+  await _scrollController.animateTo(
+    0,
+    duration: const Duration(milliseconds: 10),
+    curve: Curves.easeOut,
+  );
+
+  // Step 2: Start progressive downward scrolling
+  final double step = 300.0;
+  final double maxScroll = _scrollController.position.maxScrollExtent;
+  double currentOffset = 0;
+
+  for (int attempt = 0; attempt < 50; attempt++) {
+    final context = key.currentContext;
+
+    if (context != null) {
+      print("Category $category is now visible — scrolling directly to it");
+      Scrollable.ensureVisible(
+        context,
+        //duration: const Duration(milliseconds: 10),
+        curve: Curves.easeInOut,
+        alignment: 0,
+      );
+      return;
+    }
+
+    // Scroll down step-by-step
+    currentOffset += step;
+    if (currentOffset > maxScroll) break;
+
+    await _scrollController.animateTo(
+      currentOffset,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.linear,
     );
 
-    if (result != null) {
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  print("Failed to locate category $category after scrolling");
+}
+
+Future<void> _loadSelectionState() async {
+  final prefs = await SharedPreferences.getInstance();
+  final selectedItems = prefs.getStringList('selectedItems') ?? [];
+
+  setState(() {
+    for (var item in items) {
+      // Find matching entry in SharedPreferences
+      final savedItem = selectedItems.firstWhere(
+        (entry) {
+          final decoded = jsonDecode(entry);
+          return decoded['id'] == item['id'];
+        },
+        orElse: () => '{}',
+      );
+
+      if (savedItem != '{}') {
+        final decoded = jsonDecode(savedItem);
+        item['selected'] = true;
+        item['qty'] = decoded['qty'] ?? 1; // Default to 1 if missing
+      } else {
+        item['selected'] = false;
+        item['qty'] = 0;
+      }
+    }
+  });
+}
+
+  Future<void> _loadItems() async {
+    final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+    final items = store.box<MenuItem>().getAll();
+    setState(() {
+      _items = items.map((item) => item.copyWith(selected: false, qty: 0)).toList();
+    });
+     categories = _extractCategories(_items);
+
+     //filteredItems = List.from(items); // Copy for filtering
+  }
+
+
+void _handleCartChange() {
+
+  if (!mounted) return; // Ensure widget is still mounted
+
+  final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
+  
+  if (cartProvider.cart.isEmpty) {
+    if (mounted) {
       setState(() {
-        items[index]['qty'] = result;
+        for (var item in items) {
+          item['selected'] = false;
+          item['qty'] = 0;
+        }
+      });
+    }
+  } else {
+    if (mounted) {
+      setState(() {
+        final cartItemIds = cartProvider.cart.map((e) => e['id']).toList();
+        for (var item in items) {
+          final isInCart = cartItemIds.contains(item['id']);
+          item['selected'] = isInCart;
+          if (isInCart) {
+            final cartItem = cartProvider.cart.firstWhere(
+              (e) => e['id'] == item['id'],
+              orElse: () => {'qty': 0},
+            );
+            item['qty'] = cartItem['qty'] ?? 0;
+          } else {
+            item['qty'] = 0;
+          }
+        }
       });
     }
   }
+}
 
+Future<void> loadSelectedStyle() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    selectedStyle = prefs.getString('selectedStyle') ?? "Restaurant Style";
+  });
+}
+  
+  
   void showPrintOptions(BuildContext context) {
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+    final cart = cartProvider.cart;
+    final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -240,10 +926,14 @@ class _NewOrderPageState extends State<NewOrderPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
+              final total = await getTotal(); // 👈 Await the total
+              print(total);
               await printer.printCart(
-                  cart: cart,
-                  total: getTotal(),
-                  mode: "print"
+                 context: context,
+                  cart1: cart,
+                  total: total,
+                  mode: "print",
+                  //Store:store,
               );
             },
             child: Text("PRINT"),
@@ -251,11 +941,15 @@ class _NewOrderPageState extends State<NewOrderPage> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
+              final total = await getTotal(); // 👈 Await the total
+            print(total);
               // TODO: Implement print & settle logic
               await printer.printCart(
-                  cart: cart,
-                  total: getTotal(),
-                  mode: "settle"
+                 context: context,
+                  cart1: cart,
+                  total: total,
+                  mode: "settle",
+                  //Store: widget.store
               );
 
               print("Printing & Settling...");
@@ -270,58 +964,136 @@ class _NewOrderPageState extends State<NewOrderPage> {
     );
   }
 
-  void _onItemTap(int index) {
-    setState(() {
-      if (selectedIndexes.contains(index)) {
-        selectedIndexes.remove(index);
-      } else {
-        selectedIndexes.add(index);
-      }
+
+void updateCart(Map<String, dynamic> item) async {
+  final cartProvider = Provider.of<CartProvider>(context, listen: false);
+  final prefs = await SharedPreferences.getInstance();
+  List<String> selectedItems = prefs.getStringList('selectedItems') ?? [];
+
+  // Update SharedPreferences
+  if (item['selected']) {
+    final itemJson = jsonEncode({
+      'id': item['id'],
+      'qty': item['qty'],
+    });
+    
+    // Remove old entry if exists
+    selectedItems.removeWhere((entry) {
+      final decoded = jsonDecode(entry);
+      return decoded['id'] == item['id'];
+    });
+    
+    selectedItems.add(itemJson);
+  } else {
+    selectedItems.removeWhere((entry) {
+      final decoded = jsonDecode(entry);
+      return decoded['id'] == item['id'];
     });
   }
-  List<Map<String, dynamic>> cart = [];
+  await prefs.setStringList('selectedItems', selectedItems);
 
-  void updateCart(Map<String, dynamic> item) {
-    setState(() {
-      // Check if selected
-      if (item['selected'] == true) {
-        item['qty'] = (item['qty'] == 0 || item['qty'] == null) ? 1 : item['qty'];
-
-        // Check if item already in cart by ID or name
-        final existing = cart.indexWhere((i) => i['name'] == item['name']);
-        if (existing == -1) {
-          cart.add({...item}); // clone to avoid pointer side-effects
-        } else {
-          cart[existing] = {...item};
-        }
-      } else {
-        // Remove from cart if deselected
-        cart.removeWhere((i) => i['name'] == item['name']);
-      }
-    });
+  // Update CartProvider
+  if (item['selected'] == true) {
+    final existingIndex = cartProvider.indexOfByName(item['name']);
+    if (existingIndex == -1) {
+      cartProvider.addItem({...item}); // Add new item with spread operator
+    } else {
+      cartProvider.updateQty(existingIndex, item['qty']); // Update with current qty
+    }
+  } else {
+    cartProvider.removeItemByName(item['name']);
   }
 
+  // Update UI state
+  setState(() {
+    // Ensure qty is never null
+    item['qty'] = item['qty'] ?? 0;
+    
+    // Clear all highlights if cart is empty
+    if (cartProvider.cart.isEmpty) {
+      for (var menuItem in items) {
+        menuItem['selected'] = false;
+        menuItem['qty'] = 0;
+      }
+    }
+  });
+}
+ 
   void showCartItems() {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+    final cart = cartProvider.cart;
     print("BILL RECEIPT ITEMS:");
     for (var item in cart) {
-      print("${item['name']} x ${item['qty']} @ ₹${item['price']} = ₹${item['qty'] * item['price']}");
+      print("${item['name']} x ${item['qty']} @ ₹${item['sellPrice']} = ₹${item['qty'] * item['sellPrice']}");
     }
   }
 
-  int getTotal() {
-    int total = 0;
-    if (cart == null) return total; // if cart is nullable
+  // int getTotal() {
+  //       final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+  //   final cart = cartProvider.cart;
+  //   int total = 0;
+  //   if (cart == null) return total; // if cart is nullable
 
-    for (var item in cart) {
-      final qty = item['qty'] ?? 0;
-      final price = item['price'] ?? 0;
-      total += (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) *
-          (price is int ? price : int.tryParse(price.toString()) ?? 0);
+  //   for (var item in cart) {
+  //     final qty = item['qty'] ?? 0;
+  //     final price = item['sellPrice'] ?? 0;
+  //     total += (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) *
+  //         (price is int ? price : int.tryParse(price.toString()) ?? 0);
+  //   }
+  //   return total;
+  // }
+
+int getTotal() {
+  final cartProvider = Provider.of<CartProvider>(context, listen: false);
+  final cart = cartProvider.cart;
+  int total = 0;
+
+  for (var item in cart) {
+    final qty = item['qty'] ?? 0;
+
+    // Convert price string to int safely
+    int parsePrice(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
     }
-    return total;
+
+    int price = 0;
+
+    print("_billingType $_billingType");
+
+
+    if (_billingType == "REGULAR") {
+      price = parsePrice(item["sellPrice"]);
+    } else if (_billingType == "AC") {
+      price = parsePrice(item["acSellPrice"]) != 0
+          ? parsePrice(item["acSellPrice"])
+          : parsePrice(item["sellPrice"]);
+    } else if (_billingType == "Non-Ac") {
+      price = parsePrice(item["nonAcSellPrice"]) != 0
+          ? parsePrice(item["nonAcSellPrice"])
+          : parsePrice(item["sellPrice"]);
+    } else if (_billingType == "online-sale") {
+      price = parsePrice(item["onlineSellPrice"]) != 0
+          ? parsePrice(item["onlineSellPrice"])
+          : parsePrice(item["sellPrice"]);
+    } else if (_billingType == "online Delivery Price (parcel)") {
+      price = parsePrice(item["onlineDeliveryPrice"]) != 0
+          ? parsePrice(item["onlineDeliveryPrice"])
+          : parsePrice(item["sellPrice"]);
+    }
+
+    total += (qty is int ? qty : int.tryParse(qty.toString()) ?? 0) * price;
   }
+
+  print("total-------$total");
+  return total;
+}
 
   void showCartDialog(BuildContext context) {
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+    final cart = cartProvider.cart;
     showDialog(
       context: context,
       builder: (_) {
@@ -360,7 +1132,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
                   Expanded(
                       child: Center(
                           child: Text("x${item['qty']}"))),
-                  Text("₹${item['qty'] * item['price']}"),
+                  Text("₹${item['qty'] * item['sellPrice']}"),
                 ],
               )),
 
@@ -393,6 +1165,18 @@ class _NewOrderPageState extends State<NewOrderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+    final cart = cartProvider.cart;
+
+    int total = getTotal(); 
+
+    if (cart.isEmpty) {
+      setState(() {
+        selectedIndexes.clear();
+      });
+    }
+
+
     Map<String, List<Map<String, dynamic>>> groupedItems = {};
     for (var item in items) {
       String category = item["category"];
@@ -402,9 +1186,60 @@ class _NewOrderPageState extends State<NewOrderPage> {
       groupedItems[category]!.add(item);
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Select Items"),
-        backgroundColor: Colors.blue[900],
+ appBar: AppBar(
+        title: Row(
+          children: [
+            Text("Select Items"),
+            const SizedBox(width: 8),
+            Expanded(
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 10),
+                curve: Curves.easeInOut,
+                height: 40,
+                width: isSearching ? double.infinity : 0,
+                child: isSearching
+                    ? TextField(
+                        //controller: _searchController,
+                        autofocus: true,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search...',
+                          hintStyle: TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.blue[700],
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                       onChanged: (query) {
+                          setState(() {
+                            filteredItems = items.where((item) {
+                              final name = item['name'].toString().toLowerCase();
+                              return name.contains(query.toLowerCase());
+                            }).toList();
+                          });
+                        },
+
+                      )
+                    : SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (isSearching) _searchController.clear();
+                isSearching = !isSearching;
+              });
+            },
+          )
+        ],
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -423,39 +1258,52 @@ class _NewOrderPageState extends State<NewOrderPage> {
                       SizedBox(height: 60),
                       // ListView below
                       Expanded(
-                        child: ListView.builder(
-                          itemCount: categories.length,
-                          itemBuilder: (context, index) {
-                            return Container(
+                  child: ListView.builder(
+  itemCount: categories.length,
+  itemBuilder: (context, index) {
+    final category = categories[index];
+    final isSelected = selectedCategory == category;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedCategory = category;
+        });
+        scrollToCategory(category);
+      },
+      child: Container(
+        margin: EdgeInsets.all(2),
+        width: 80,
+        height: 60,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.green[300] : Colors.white,
+          border: Border.all(color: Colors.black12),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 2,
+              offset: Offset(1, 1),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            category,
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  },
+),
 
-                              margin: EdgeInsets.all(2),
-                              width: 80,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: Colors.white, // Background color of each item
-                                border: Border.all(color: Colors.black12), // 🔲 Light border
-                                borderRadius: BorderRadius.circular(8), // 🔘 Rounded corners
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 2,
-                                    offset: Offset(1, 1),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  categories[index],
-                                  style: TextStyle(fontSize: 12),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            );
-                          },
-
-                        ),
-                      ),
-                    ],
+                ),
+                ],
                   ),
                 ),
 
@@ -475,211 +1323,56 @@ class _NewOrderPageState extends State<NewOrderPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildFlatSquareButton(Icons.add, "Items", () {
-                              // Do something
-                            }),
-                            _buildFlatSquareButton(Icons.edit, "HOLD", () {
-                              // Do something
-                            }),
+                           _buildFlatSquareButton(Icons.add, "Items", () {
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => AddItemPage(), // Replace with your actual page
+                            //   ),
+                            // );
+                          }),
+
+                           
+                          _buildFlatSquareButton(
+                              Icons.edit,
+                              "HOLD",
+                              () async {
+                              setState(() {
+                                isHoldEnabled = !isHoldEnabled;
+                              });
+
+                              final prefs = await SharedPreferences.getInstance();
+                              prefs.setBool('isHoldEnabled', isHoldEnabled);
+                            },
+
+                              isActive: isHoldEnabled,
+                                                        
+                           
+                            ),
+
+
+
                             _buildFlatSquareButton(Icons.local_shipping, "PARCEL", () {
                               // Do something
                             }),
                           ],
                         ),
                       ),
-
-
                       // Item grid below
                       Expanded(
                         child: Container(
                           color: Colors.grey[200],
-                            child:ListView.builder(
-                              itemCount: groupedItems.length,
-                              itemBuilder: (context, categoryIndex) {
-                                String category = groupedItems.keys.elementAt(categoryIndex);
-                                List<Map<String, dynamic>> categoryItems = groupedItems[category]!;
 
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                      child: Text(
-                                        category,
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-                                      ),
-                                    ),
-
-                                    GridView.custom(
-                                      shrinkWrap: true,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 3,
-                                        crossAxisSpacing: 6,
-                                        mainAxisSpacing: 6,
-                                        childAspectRatio: 1,
-                                      ),
-                                      childrenDelegate: SliverChildBuilderDelegate(
-                                            (context, index) {
-                                          final item = categoryItems[index];
-
-                                          return GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (item['selected'] == true) {
-                                                  item['qty'] += 1; // increase qty
-                                                } else {
-                                                  item['selected'] = true;
-                                                  item['qty'] = 1;
-                                                }
-                                                updateCart(item);
-                                              });
-                                            },
-                                            child: Stack(
-                                              children: [
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: item['selected'] == true ? Colors.green[100] : Colors.white,
-                                                    border: Border.all(color: Colors.black12),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(4),
-                                                    child: Column(
-                                                      children: [
-                                                        Flexible(
-                                                          child: Text(
-                                                            item["name"],
-                                                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                                                            textAlign: TextAlign.center,
-                                                            softWrap: true,
-                                                            overflow: TextOverflow.visible,
-                                                            maxLines: 3,
-                                                          ),
-                                                        ),
-                                                        Spacer(),
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                          children: [
-                                                            GestureDetector(
-                                                              onTap: () async {
-                                                                TextEditingController _controller = TextEditingController(
-                                                                    text: item['qty'].toString());
-
-                                                                final newQuantity = await showDialog<String>(
-                                                                  context: context,
-                                                                  builder: (context) {
-                                                                    return AlertDialog(
-                                                                      title: Text("Enter Quantity"),
-                                                                      content: TextField(
-                                                                        controller: _controller,
-                                                                        keyboardType: TextInputType.number,
-                                                                        decoration: InputDecoration(hintText: "Enter quantity"),
-                                                                      ),
-                                                                      actions: [
-                                                                        TextButton(
-                                                                          child: Text("Cancel"),
-                                                                          onPressed: () => Navigator.of(context).pop(),
-                                                                        ),
-                                                                        ElevatedButton(
-                                                                          child: Text("OK"),
-                                                                          onPressed: () => Navigator.of(context).pop(_controller.text),
-                                                                        ),
-                                                                      ],
-                                                                    );
-                                                                  },
-                                                                );
-
-                                                                if (newQuantity != null && newQuantity.isNotEmpty) {
-                                                                  setState(() {
-                                                                    item['qty'] = int.tryParse(newQuantity) ?? 0;
-                                                                    updateCart(item);
-                                                                  });
-                                                                }
-                                                              },
-                                                              child: Container(
-                                                                width: 30,
-                                                                height: 25,
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(color: Colors.black26),
-                                                                  color: item['qty'] == 0 ? Colors.grey[200] : Colors.green[300],
-                                                                ),
-                                                                child: Center(
-                                                                  child: FittedBox(
-                                                                    child: Text(
-                                                                      item['qty'].toString(),
-                                                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-
-                                                            DottedBorder(
-                                                              color: Colors.black54,
-                                                              strokeWidth: 1,
-                                                              dashPattern: [4, 2],
-                                                              radius: Radius.circular(4),
-                                                              child: Container(
-                                                                width: 30,
-                                                                height: 15,
-                                                                alignment: Alignment.center,
-                                                                child: Text(
-                                                                  "${item["price"]}",
-                                                                  style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.bold,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-
-                                                // ❌ Remove Icon – visible only if selected
-                                                if (item['selected'] == true)
-                                                  Positioned(
-                                                    top: 2,
-                                                    right: 2,
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          item['selected'] = false;
-                                                          item['qty'] = 0;
-                                                          updateCart(item);
-                                                        });
-                                                      },
-                                                      child: Container(
-                                                        padding: EdgeInsets.all(2),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.red,
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: Icon(Icons.close, size: 18, color: Colors.white),
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          );
-
-                                            },
-                                        childCount: categoryItems.length,
-                                      ),
-                                    ),
-
-                                    Divider(color: Colors.blue.shade400, thickness: 1.5),
-                                  ],
-                                );
-                              },
-                            )
+                          child: selectedStyle == "Restaurant Style"
+                          ? _buildGridView()
+                          : selectedStyle == "List Style"
+                              ? _buildListView()
+                              : selectedStyle == "Restaurant With Image Style"
+                                  ? _imagebuildGridView()
+                                  : _buildGridView(), // fallback if none match
 
 
+                
                         ),
                       ),
 
@@ -700,6 +1393,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
 
       // Bottom Bar
       bottomNavigationBar: BottomAppBar(
+        
         color: Colors.grey[300],
         elevation: 0, // Optional: remove shadow
         child: SizedBox(
@@ -712,7 +1406,17 @@ class _NewOrderPageState extends State<NewOrderPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     // Handle DETAILS
-                    showCartDialog(context);
+                    //showCartDialog(context);
+                   Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                       
+                      builder: (context) => DetailPage(
+                        //objectBox:widget.store, // 🔁 Pass the Store here
+                      ),
+                    ),
+                    );
+
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -746,20 +1450,25 @@ class _NewOrderPageState extends State<NewOrderPage> {
 
               // SAVE Button (disabled)
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => showPrintOptions(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[400],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    "SAVE (₹ ${getTotal()})",
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
-                ),
+
+    child:  ElevatedButton(
+        onPressed: () => showPrintOptions(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[400],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text(
+          "SAVE (₹ $total)",
+          
+          style: const TextStyle(fontSize: 16, color: Colors.black87),
+        ),
+      ),
+
+    
               ),
+
 
 
             ],
@@ -770,24 +1479,21 @@ class _NewOrderPageState extends State<NewOrderPage> {
     );
   }
 
-  void selectItem(int index) {
-    setState(() {
-      for (int i = 0; i < items.length; i++) {
-        print("Item selected: ${items[index]}");
 
-        items[i]['selected'] = (i == index); // Only highlight the tapped one
-      }
-    });
+
+ 
   }
-}
 
 
 
 
 
-Widget _buildFlatSquareButton(IconData icon, String label, VoidCallback onPressed) {
+
+Widget _buildFlatSquareButton(
+    IconData icon, String label, VoidCallback onPressed,
+    {bool isActive = false}) {
   return Container(
-    color: Colors.white,
+    color: isActive ? Colors.green : Colors.white,
     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     child: InkWell(
       onTap: onPressed,

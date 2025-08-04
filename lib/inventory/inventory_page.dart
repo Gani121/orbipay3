@@ -5,11 +5,13 @@ import 'dart:io';
 import '../models/objectbox.g.dart';
 import 'package:objectbox/objectbox.dart';
 import '../models/menu_item.dart';
+import 'package:test1/cartprovier/ObjectBoxService.dart';
+import 'package:provider/provider.dart';
 
 class InventoryPage extends StatefulWidget {
-  final Store store;
+  //final Store store;
 
-  const InventoryPage({Key? key, required this.store}) : super(key: key);
+  const InventoryPage({Key? key}) : super(key: key);
 
   @override
   _InventoryPageState createState() => _InventoryPageState();
@@ -22,7 +24,8 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   void initState() {
     super.initState();
-    _menuItemBox = widget.store.box<MenuItem>();
+    final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+    _menuItemBox = store.box<MenuItem>();
     _loadItems();
   }
 
@@ -35,6 +38,9 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+//final box = store.box<YourModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Item List"),
@@ -89,10 +95,10 @@ class _InventoryPageState extends State<InventoryPage> {
                       MaterialPageRoute(
                         builder: (context) => ItemLedgerPage(
                           item: item,
-                          store: widget.store,
+                          store: store,
                         ),
                       ),
-                    );
+                    ).then((_) => _loadItems()); // Refresh after returning
                   },
                   child: Card(
                     shape: RoundedRectangleBorder(
@@ -156,13 +162,14 @@ class _InventoryPageState extends State<InventoryPage> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddItemPage(store: widget.store),
+              builder: (_) => AddItemPage(store: store),
             ),
-          ).then((_) => _loadItems());
+          );
+          _loadItems(); // Refresh after adding new item
         },
         label: const Text("NEW ITEM"),
         icon: const Icon(Icons.add),

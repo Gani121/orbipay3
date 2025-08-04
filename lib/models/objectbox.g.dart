@@ -12,136 +12,188 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart'
     as obx_int; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart' as obx;
+import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import '../billnogenerator/BillCounter.dart';
 import 'menu_item.dart';
+import 'transaction.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(1, 6495208931863241297),
-      name: 'MenuItem',
-      lastPropertyId: const obx_int.IdUid(19, 464657611418317167),
+      id: const obx_int.IdUid(1, 1019123645680910039),
+      name: 'BillCounter',
+      lastPropertyId: const obx_int.IdUid(2, 5914349024876171738),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 1592315049153886471),
+            id: const obx_int.IdUid(1, 8695992857360080676),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 7462863096231829060),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 430846733913072454),
-            name: 'sellPrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 9054707446956831066),
-            name: 'sellPriceType',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 4940802606677222972),
-            name: 'category',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 6472782546457181004),
-            name: 'mrp',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 8689185363243923189),
-            name: 'purchasePrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 8623032276107503854),
-            name: 'acSellPrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 2715734306326076426),
-            name: 'nonAcSellPrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 4647292626289481923),
-            name: 'onlineDeliveryPrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 95649212323648283),
-            name: 'onlineSellPrice',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 5577845808045424797),
-            name: 'hsnCode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(13, 752307232293544907),
-            name: 'itemCode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(14, 412019300122538851),
-            name: 'barCode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(15, 1025033072091328451),
-            name: 'barCode2',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(16, 5303554380655641513),
-            name: 'imagePath',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(17, 2921465599143506605),
-            name: 'available',
+            id: const obx_int.IdUid(2, 5914349024876171738),
+            name: 'lastBillNo',
             type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(18, 7985335669452630594),
-            name: 'adjustStock',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(19, 464657611418317167),
-            name: 'gstRate',
-            type: 8,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(2, 5271690494685821644),
-      name: 'Note',
-      lastPropertyId: const obx_int.IdUid(3, 8055258805406742770),
+      id: const obx_int.IdUid(2, 3582577871583635519),
+      name: 'MenuItem',
+      lastPropertyId: const obx_int.IdUid(23, 5733070948939132250),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 2908962392022102502),
+            id: const obx_int.IdUid(1, 5513895496785653328),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1281433544322923667),
-            name: 'title',
+            id: const obx_int.IdUid(2, 4314474408438079815),
+            name: 'name',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 8055258805406742770),
-            name: 'content',
+            id: const obx_int.IdUid(3, 3090093852456933090),
+            name: 'sellPrice',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 8609622646886032539),
+            name: 'sellPriceType',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 1599641091626051587),
+            name: 'category',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 2861219584207510589),
+            name: 'mrp',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 5593189061636039987),
+            name: 'purchasePrice',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 8590849805474482848),
+            name: 'acSellPrice',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 7313573036249261136),
+            name: 'nonAcSellPrice',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 8432291160507611693),
+            name: 'onlineDeliveryPrice',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 8589446624660179125),
+            name: 'onlineSellPrice',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(12, 8531729988208766765),
+            name: 'hsnCode',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(13, 3610426219220378359),
+            name: 'itemCode',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(14, 8442569207793758908),
+            name: 'barCode',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(15, 7363542963920796319),
+            name: 'barCode2',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(16, 3892497017337573094),
+            name: 'imagePath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(17, 394020576652223949),
+            name: 'available',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(18, 9019984288974176565),
+            name: 'adjustStock',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(19, 7099351567907957224),
+            name: 'gstRate',
+            type: 8,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(20, 4829485124407521824),
+            name: 'withTax',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(21, 2989306200332019824),
+            name: 'cessRate',
+            type: 8,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(22, 1302914077306052551),
+            name: 'selected',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(23, 5733070948939132250),
+            name: 'qty',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 6864652018561019037),
+      name: 'Transaction',
+      lastPropertyId: const obx_int.IdUid(5, 2247625801660169757),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 8786320978196448423),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 7679587270166320258),
+            name: 'time',
+            type: 10,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 8091580902238673261),
+            name: 'tableNo',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 3473461810160574889),
+            name: 'total',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 2247625801660169757),
+            name: 'cartData',
+            type: 23,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -159,16 +211,17 @@ final _entities = <obx_int.ModelEntity>[
 /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
 /// the ObjectBox Flutter library to fix loading the native ObjectBox library
 /// on Android 6 and older.
-obx.Store openStore(
+Future<obx.Store> openStore(
     {String? directory,
     int? maxDBSizeInKB,
     int? maxDataSizeInKB,
     int? fileMode,
     int? maxReaders,
     bool queriesCaseSensitiveDefault = true,
-    String? macosApplicationGroup}) {
+    String? macosApplicationGroup}) async {
+  await loadObjectBoxLibraryAndroidCompat();
   return obx.Store(getObjectBoxModel(),
-      directory: directory,
+      directory: directory ?? (await defaultStoreDirectory()).path,
       maxDBSizeInKB: maxDBSizeInKB,
       maxDataSizeInKB: maxDataSizeInKB,
       fileMode: fileMode,
@@ -182,7 +235,7 @@ obx.Store openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 5271690494685821644),
+      lastEntityId: const obx_int.IdUid(3, 6864652018561019037),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -195,8 +248,33 @@ obx_int.ModelDefinition getObjectBoxModel() {
       version: 1);
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    MenuItem: obx_int.EntityDefinition<MenuItem>(
+    BillCounter: obx_int.EntityDefinition<BillCounter>(
         model: _entities[0],
+        toOneRelations: (BillCounter object) => [],
+        toManyRelations: (BillCounter object) => {},
+        getId: (BillCounter object) => object.id,
+        setId: (BillCounter object, int id) {
+          object.id = id;
+        },
+        objectToFB: (BillCounter object, fb.Builder fbb) {
+          fbb.startTable(3);
+          fbb.addInt64(0, object.id);
+          fbb.addInt64(1, object.lastBillNo);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final lastBillNoParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
+          final object = BillCounter(lastBillNo: lastBillNoParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
+        }),
+    MenuItem: obx_int.EntityDefinition<MenuItem>(
+        model: _entities[1],
         toOneRelations: (MenuItem object) => [],
         toManyRelations: (MenuItem object) => {},
         getId: (MenuItem object) => object.id,
@@ -238,7 +316,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final imagePathOffset = object.imagePath == null
               ? null
               : fbb.writeString(object.imagePath!);
-          fbb.startTable(20);
+          fbb.startTable(24);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, sellPriceOffset);
@@ -258,6 +336,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addInt64(16, object.available);
           fbb.addInt64(17, object.adjustStock);
           fbb.addFloat64(18, object.gstRate);
+          fbb.addBool(19, object.withTax);
+          fbb.addFloat64(20, object.cessRate);
+          fbb.addBool(21, object.selected);
+          fbb.addInt64(22, object.qty);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -274,7 +356,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 10, '');
           final categoryParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 12);
+              .vTableGet(buffer, rootOffset, 12, '');
           final mrpParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 14);
           final purchasePriceParam =
@@ -303,17 +385,25 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final imagePathParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 34);
           final availableParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0);
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 36);
           final adjustStockParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 38, 0);
-          final gstRateParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 40, 0);
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 38);
+          final gstRateParam = const fb.Float64Reader()
+              .vTableGetNullable(buffer, rootOffset, 40);
+          final withTaxParam =
+              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 42);
+          final cessRateParam = const fb.Float64Reader()
+              .vTableGetNullable(buffer, rootOffset, 44);
+          final selectedParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 46, false);
+          final qtyParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 48, 0);
           final object = MenuItem(
               id: idParam,
               name: nameParam,
               sellPrice: sellPriceParam,
               sellPriceType: sellPriceTypeParam,
-              category: categoryParam ?? '',
+              category: categoryParam,
               mrp: mrpParam,
               purchasePrice: purchasePriceParam,
               acSellPrice: acSellPriceParam,
@@ -327,92 +417,187 @@ obx_int.ModelDefinition getObjectBoxModel() {
               imagePath: imagePathParam,
               available: availableParam,
               adjustStock: adjustStockParam,
-              gstRate: gstRateParam);
+              gstRate: gstRateParam,
+              withTax: withTaxParam,
+              cessRate: cessRateParam,
+              selected: selectedParam,
+              qty: qtyParam);
 
           return object;
         }),
+    Transaction: obx_int.EntityDefinition<Transaction>(
+        model: _entities[2],
+        toOneRelations: (Transaction object) => [],
+        toManyRelations: (Transaction object) => {},
+        getId: (Transaction object) => object.id,
+        setId: (Transaction object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Transaction object, fb.Builder fbb) {
+  final cartDataOffset = fbb.writeString(object.cartData);
+  //final timeOffset = fbb.writeString(object.time);
+
+  fbb.startTable(6);
+  fbb.addInt64(0, object.id);
+ // fbb.addOffset(1, timeOffset); // use string for time
+  fbb.addInt64(2, object.tableNo);
+  fbb.addInt64(3, object.total);
+  fbb.addOffset(4, cartDataOffset);
+  fbb.finish(fbb.endTable());
+  return object.id;
+}
+,
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final timeParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0));
+          final tableNoParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 8);
+          final totalParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
+          final cartDataParam =
+              const fb.StringReader()
+                      .vTableGet(buffer, rootOffset, 12, '');
+          final object = Transaction(
+              //time: timeParam,
+              tableNo: tableNoParam,
+              total: totalParam,
+              cartData: cartDataParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
+        })
   };
 
   return obx_int.ModelDefinition(model, bindings);
+}
+
+/// [BillCounter] entity fields to define ObjectBox queries.
+class BillCounter_ {
+  /// See [BillCounter.id].
+  static final id =
+      obx.QueryIntegerProperty<BillCounter>(_entities[0].properties[0]);
+
+  /// See [BillCounter.lastBillNo].
+  static final lastBillNo =
+      obx.QueryIntegerProperty<BillCounter>(_entities[0].properties[1]);
 }
 
 /// [MenuItem] entity fields to define ObjectBox queries.
 class MenuItem_ {
   /// See [MenuItem.id].
   static final id =
-      obx.QueryIntegerProperty<MenuItem>(_entities[0].properties[0]);
+      obx.QueryIntegerProperty<MenuItem>(_entities[1].properties[0]);
 
   /// See [MenuItem.name].
   static final name =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[1]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[1]);
 
   /// See [MenuItem.sellPrice].
   static final sellPrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[2]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[2]);
 
   /// See [MenuItem.sellPriceType].
   static final sellPriceType =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[3]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[3]);
 
   /// See [MenuItem.category].
   static final category =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[4]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[4]);
 
   /// See [MenuItem.mrp].
   static final mrp =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[5]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[5]);
 
   /// See [MenuItem.purchasePrice].
   static final purchasePrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[6]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[6]);
 
   /// See [MenuItem.acSellPrice].
   static final acSellPrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[7]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[7]);
 
   /// See [MenuItem.nonAcSellPrice].
   static final nonAcSellPrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[8]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[8]);
 
   /// See [MenuItem.onlineDeliveryPrice].
   static final onlineDeliveryPrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[9]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[9]);
 
   /// See [MenuItem.onlineSellPrice].
   static final onlineSellPrice =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[10]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[10]);
 
   /// See [MenuItem.hsnCode].
   static final hsnCode =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[11]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[11]);
 
   /// See [MenuItem.itemCode].
   static final itemCode =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[12]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[12]);
 
   /// See [MenuItem.barCode].
   static final barCode =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[13]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[13]);
 
   /// See [MenuItem.barCode2].
   static final barCode2 =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[14]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[14]);
 
   /// See [MenuItem.imagePath].
   static final imagePath =
-      obx.QueryStringProperty<MenuItem>(_entities[0].properties[15]);
+      obx.QueryStringProperty<MenuItem>(_entities[1].properties[15]);
 
   /// See [MenuItem.available].
   static final available =
-      obx.QueryIntegerProperty<MenuItem>(_entities[0].properties[16]);
+      obx.QueryIntegerProperty<MenuItem>(_entities[1].properties[16]);
 
   /// See [MenuItem.adjustStock].
   static final adjustStock =
-      obx.QueryIntegerProperty<MenuItem>(_entities[0].properties[17]);
+      obx.QueryIntegerProperty<MenuItem>(_entities[1].properties[17]);
 
   /// See [MenuItem.gstRate].
   static final gstRate =
-      obx.QueryDoubleProperty<MenuItem>(_entities[0].properties[18]);
+      obx.QueryDoubleProperty<MenuItem>(_entities[1].properties[18]);
+
+  /// See [MenuItem.withTax].
+  static final withTax =
+      obx.QueryBooleanProperty<MenuItem>(_entities[1].properties[19]);
+
+  /// See [MenuItem.cessRate].
+  static final cessRate =
+      obx.QueryDoubleProperty<MenuItem>(_entities[1].properties[20]);
+
+  /// See [MenuItem.selected].
+  static final selected =
+      obx.QueryBooleanProperty<MenuItem>(_entities[1].properties[21]);
+
+  /// See [MenuItem.qty].
+  static final qty =
+      obx.QueryIntegerProperty<MenuItem>(_entities[1].properties[22]);
 }
 
+/// [Transaction] entity fields to define ObjectBox queries.
+class Transaction_ {
+  /// See [Transaction.id].
+  static final id =
+      obx.QueryIntegerProperty<Transaction>(_entities[2].properties[0]);
 
+  /// See [Transaction.time].
+  static final time =
+      obx.QueryDateProperty<Transaction>(_entities[2].properties[1]);
+
+  /// See [Transaction.tableNo].
+  static final tableNo =
+      obx.QueryIntegerProperty<Transaction>(_entities[2].properties[2]);
+
+  /// See [Transaction.total].
+  static final total =
+      obx.QueryIntegerProperty<Transaction>(_entities[2].properties[3]);
+
+  /// See [Transaction.cartData].
+  static final cartData =
+      obx.QueryByteVectorProperty<Transaction>(_entities[2].properties[4]);
+}

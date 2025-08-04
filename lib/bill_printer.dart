@@ -2,17 +2,34 @@ import 'dart:convert';
 
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+
+import 'dart:io';
+import 'cartprovier/cart_provider.dart';
+import 'package:provider/provider.dart';
+
+
+import 'models/objectbox.g.dart';
+import 'models/transaction.dart';
+
+import 'cartprovier/ObjectBoxService.dart';
 
 class BillPrinter {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   Function()? onTransactionAdded;
 
   Future<void> printCart({
-    required List<Map<String, dynamic>> cart,
+    required BuildContext context,
+    required List<Map<String, dynamic>> cart1,
     required int total,
     required String mode,
+    //required Store Store,
   }) async {
     try {
+    
+    final cart = cart1;
+    print("🛒 Cart data: $cart1");
+
       final device = await _getSavedPrinter();
       if (device == null) {
         print("❌ No saved printer found.");
@@ -32,12 +49,13 @@ class BillPrinter {
       for (var item in cart) {
         String name = item['name'] ?? 'Item';
         int qty = item['qty'] ?? 0;
-        int price = item['price'] ?? 0;
+        int price = int.tryParse(item['sellPrice'] ?? '') ?? 0;
         bluetooth.printLeftRight("$name x$qty", "Rs.${qty * price}", 1);
       }
 
       bluetooth.printNewLine();
       bluetooth.printCustom("Total: Rs.$total", 2, 2);
+
       bluetooth.printNewLine();
       bluetooth.printCustom("Thank you!", 1, 1);
       bluetooth.printNewLine();
@@ -46,54 +64,76 @@ class BillPrinter {
 
       print("✅ Printed successfully.");
 
+          // ✅ Go back two pages
+    
+        // try{
+        //   Navigator.pop(context); // Pops current
+        //   Navigator.pop(context);
+        // }catch(e){
+        //   bluetooth.disconnect();
+        // }
+   
+    // Future.delayed(Duration.zero, () {
+    //   Navigator.pop(context); // Pops one more after frame
+    // });
+
+
+
+
+
+        
+     
+
+
       // ✅ Save to recent transactions
       if(mode=="settle") {
-        await _saveTransactionToLocal(
+        print("cart to store ata $cart");
+        await _saveTransactionToObjectBox(
+          context: context,
           cart: cart,
           total: total,
           tableNo: 1,
+
         );
+
       }
+
+     
     } catch (e) {
       print("❌ Error while printing: $e");
       bluetooth.disconnect();
     }
   }
 
+Future<void> _saveTransactionToObjectBox({
+  required BuildContext context,
+  required List<Map<String, dynamic>> cart,
+  required int total,
+  int? tableNo,
+}) async {
+  final store = Provider.of<ObjectBoxService>(context, listen: false).store;
+  final box = store.box<Transaction>();
 
-  Future<void> _saveTransactionToLocal({
-    required List<Map<String, dynamic>> cart,
-    required int total,
-    int? tableNo,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
+final tx = Transaction(
+  //time: DateTime.now().toIso8601String(),
+  tableNo: tableNo,
+  total: total,
+  cartData: jsonEncode(cart), // encode List<Map<String, dynamic>> to String
+);
 
-    // Get existing list
-    final List<String> existing =
-        prefs.getStringList('recent_transactions') ?? [];
 
-    // Create a new entry
-    final Map<String, dynamic> newTx = {
-      'time': DateTime.now().toIso8601String(),
-      'tableNo': tableNo,
-      'total': total,
-      'cart': cart,
-    };
 
-    existing.insert(0, jsonEncode(newTx));
+  box.put(tx);
 
-    // Limit to latest 20 transactions
-    // if (existing.length > 20) {
-    //   existing.removeRange(20, existing.length);
-    // }
+  print("✅ Transaction saved to ObjectBox.");
+  onTransactionAdded?.call();
+  print("🔁 Transaction added callback fired!");
+  final cartProvider = Provider.of<CartProvider>(context, listen: false);;
+  cartProvider.clearCart();
 
-    await prefs.setStringList('recent_transactions', existing);
-    if (onTransactionAdded != null) {
-      onTransactionAdded!(); // 🟢 Triggers reload in UI
-    }
-    print("✅ Transaction saved.");
-  }
-
+  Navigator.pop(context);
+  Navigator.pop(context);
+}
 
   Future<BluetoothDevice?> _getSavedPrinter() async {
     final prefs = await SharedPreferences.getInstance();

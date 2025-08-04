@@ -10,19 +10,72 @@ import 'SettingsPage.dart';
 import 'inventory/inventory_page.dart';
 import 'models/objectbox.g.dart';
 
-late final Store objectboxStore;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import'./cartprovier/cart_provider.dart';
+import'./cartprovier/ObjectBoxService.dart';
 
-Future<Store> openObjectBoxStore() async {
-  final dir = await getApplicationDocumentsDirectory();
-  return Store(getObjectBoxModel(), directory: '${dir.path}/objectbox');
-}
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import './models/transaction.dart';
+import 'bill_printer.dart'; // Adjust the import path
+
+import 'inventory/detailspage.dart';
+
+import './pages/PartyListPage.dart';
+
+import './theme_setting/theme_provider.dart';
+//import './theme_setting/settings_page.dart'; // <- settings screen
+
+
+// late final Store objectboxStore;
+
+// Future<Store> openObjectBoxStore() async {
+//   final dir = await getApplicationDocumentsDirectory();
+//   return Store(getObjectBoxModel(), directory: '${dir.path}/objectbox');
+// }
+
+    final printer = BillPrinter();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final dir = await getApplicationDocumentsDirectory();
-  objectboxStore = Store(getObjectBoxModel(), directory: '${dir.path}/objectbox');
-  runApp(MyApp());
+
+  final objectBoxService = ObjectBoxService();
+  await objectBoxService.init();
+
+
+  // final dir = await getApplicationDocumentsDirectory();
+  // objectboxStore = Store(getObjectBoxModel(), directory: '${dir.path}/objectbox');
+
+  //await deleteOldObjectBoxStore(); // 👈 Run this ONCE to clean the store
+  //objectboxStore = await openStore(); // or Store(getObjectBoxModel())
+ runApp(
+    MultiProvider(
+      providers: [
+        Provider<ObjectBoxService>.value(value: objectBoxService),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+       ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      
+    ),
+        // Add more providers if needed
+      ],
+      child: MyApp(),
+    ),
+  );
 }
+
+
+Future<void> deleteOldObjectBoxStore() async {
+  final dir = await getApplicationDocumentsDirectory(); // <- await is important
+  final objectboxDir = Directory('${dir.path}/objectbox');
+  if (await objectboxDir.exists()) {
+    print("Deleting old ObjectBox store...");
+    await objectboxDir.delete(recursive: true);
+  }
+}
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -57,33 +110,78 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
 
   List<Map<String, dynamic>> transactions = [];
 
+
+  @override
+  void dispose() {
+    Provider.of<ObjectBoxService>(context, listen: false).dispose();
+    super.dispose();
+  }
+late Store store;
   @override
   void initState() {
     super.initState();
-
+    store = Provider.of<ObjectBoxService>(context, listen: false).store;
     // 🔄 Set the callback to reload data when a new transaction is added
+
     printer.onTransactionAdded = () {
-      loadRecentTransactions();
+       print("loadRecentTransactions calle");
+      loadRecentTransactions(store);
     };
-    loadRecentTransactions();
+    loadRecentTransactions(store);
   }
 
-  Future<void> loadRecentTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String>? txStrings = prefs.getStringList('recent_transactions');
 
-    if (txStrings == null || txStrings.isEmpty) {
-      setState(() => transactions = []);
-      return;
-    }
+  @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  store = Provider.of<ObjectBoxService>(context, listen: false).store;
+  loadRecentTransactions(store);
+}
 
-    setState(() {
-      transactions = txStrings
-          .where((tx) => tx != null && tx.trim().isNotEmpty) // avoid null or empty
-          .map((tx) => jsonDecode(tx) as Map<String, dynamic>)
-          .toList();
-    });
+
+void _loadHoldStatus() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    isHoldEnabled = prefs.getBool('isHoldEnabled') ?? false;
+  });
+}
+
+Future<void> loadRecentTransactions(Store store) async {
+  final box = store.box<Transaction>();
+  final all = box.getAll();
+
+WidgetsBinding.instance.addPostFrameCallback((_) async {
+  final prefs = await SharedPreferences.getInstance();
+  final isHoldEnabled = prefs.getBool('isHoldEnabled') ?? false;
+
+  if (!isHoldEnabled) {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.clearCart();
+    await prefs.remove('selectedItems'); 
   }
+
+
+});
+
+
+  // Optional: Sort by latest
+ // all.sort((a, b) => b.time.compareTo(a.time));
+print('Loaded ${all.length} transactions');
+  // Update your state with decoded transactions
+  setState(() {
+    transactions = all
+        .map((tx) => {
+              'id': tx.id,
+              //'time': tx.time,
+              'tableNo': tx.tableNo,
+              'total': tx.total,
+              'cart': jsonDecode(tx.cartData),
+            })
+        .toList();
+        print('setState called with ${transactions.length} transactions');
+  });
+}
+
 
   int getTodayTotalSale() {
     return transactions.fold(0, (sum, tx) => sum + (tx['total'] as int? ?? 0));
@@ -148,6 +246,8 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
       key: _scaffoldKey,
 
@@ -306,7 +406,7 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
 
 
       appBar: AppBar(
-        backgroundColor: Colors.red.shade600,
+        backgroundColor: themeProvider.primaryColor,
         elevation: 0,
 
         // 🔹 Left Menu Button
@@ -314,6 +414,8 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
           icon: Icon(Icons.menu, color: Colors.white),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
+
+        
 
         title: Row(
           children: [
@@ -413,7 +515,11 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
               itemCount: transactions.length,
               itemBuilder: (context, index) {
                 var tx = transactions[index];
-                return Card(
+                return GestureDetector(
+                onTap: () {
+                  _showTransactionOptionsDialog(context, tx);
+                },
+                child: Card(
                   color: Colors.white,
                   margin: EdgeInsets.only(bottom: 10),
                   shape: RoundedRectangleBorder(
@@ -429,10 +535,10 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              formatDateTime(tx['time']), // format ISO time
-                              style: TextStyle(fontSize: 12, color: Colors.black),
-                            ),
+                            // Text(
+                            //   //formatDateTime(tx['time']), // format ISO time
+                            //   //style: TextStyle(fontSize: 12, color: Colors.black),
+                            // ),
                             Text(
                               'Table: ${tx['tableNo'] ?? "-"}',
                               style: TextStyle(fontSize: 12, color: Colors.black),
@@ -481,6 +587,7 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
                       ],
                     ),
                   ),
+                ),
                 );
               },
             ),
@@ -493,7 +600,9 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => NewOrderPage()),
-          );
+          ).then((_) {
+  loadRecentTransactions(store);
+});
         },
         label: Text('New Order'),
         icon: Icon(Icons.add),
@@ -503,18 +612,33 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.red,
+        unselectedItemColor: Colors.blue,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
 
-          if (index == 1) {
+
+           if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => InventoryPage(store: objectboxStore)),
+              MaterialPageRoute(builder: (context) => PartyListPage()),
             );
           }
-          else if (index == 2) {
+          if (index == 2) {
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => InventoryPage()),
+            // );
+          }
+
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => InventoryPage()),
+            );
+          }
+          else if (index == 4) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SettingsPage()),
@@ -523,6 +647,8 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Dashboard"),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: "Party"),
+          BottomNavigationBarItem(icon: Icon(Icons.balance), label: "Udhari"),
           BottomNavigationBarItem(icon: Icon(Icons.inventory), label: "Inventory"),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
         ],
@@ -530,6 +656,21 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
     );
 
   }
+
+
+  //   void _onItemTapped(int index) {
+  //   setState(() {
+  //     _selectedIndex = index;
+  //   });
+
+  //   // Navigate to PartyListPage on Inventory tab click (index 1)
+  //   if (index == 1) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => PartyListPage()),
+  //     );
+  //   }
+  // }
 
   Widget _infoCard(String title, String value, {Widget? icon}) {
     return Container(
@@ -577,6 +718,61 @@ class _DostiKitchenPageState extends State<DostiKitchenPage> {
       }
     ]
   };
+
+
+  void _showTransactionOptionsDialog(BuildContext context, Map<String, dynamic> tx) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Transaction: Table ${tx['tableNo']}'),
+      content: Text('Choose an action for this transaction.'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); // close dialog
+            _printTransaction(tx);
+          },
+          child: Text('🖨️ Print'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); // close dialog
+            _editTransaction(tx);
+          },
+          child: Text('✏️ Edit'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel'),
+        ),
+      ],
+    ),
+  );
+}
+
+void _printTransaction(Map<String, dynamic> tx) async {
+  //print(tx);
+await printer.printCart(
+  context: context,
+  cart1: (tx['cart'] as List).cast<Map<String, dynamic>>(),
+  total: tx['total'],
+  mode: "print",
+);
+
+}
+
+void _editTransaction(Map<String, dynamic> tx) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => DetailPage(
+        cart1: (tx['cart'] as List).cast<Map<String, dynamic>>(),
+        mode: "edit",
+      ),
+    ),
+  );
+}
+
 
   void _showDevicePickerDialog(BuildContext context, List<BluetoothDevice> devices) {
     showDialog(

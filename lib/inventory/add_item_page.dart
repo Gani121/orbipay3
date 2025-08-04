@@ -6,9 +6,10 @@ import 'package:objectbox/objectbox.dart';
 import '../models/objectbox.g.dart'; // This will be generated
 
 class AddItemPage extends StatefulWidget {
-  final Store store;
-  
-  const AddItemPage({Key? key, required this.store}) : super(key: key);
+  final Store? store; // 👈 made nullable
+  final MenuItem? item; // 👈 optional edit
+
+  const AddItemPage({Key? key, this.store, this.item}) : super(key: key);
 
   @override
   _AddItemPageState createState() => _AddItemPageState();
@@ -67,11 +68,46 @@ class _AddItemPageState extends State<AddItemPage> {
   @override
   void initState() {
     super.initState();
-    _menuItemBox = widget.store.box<MenuItem>();
+    
+   if (widget.store != null) {
+    _menuItemBox = widget.store!.box<MenuItem>();
+  } else {
+    // Handle the null case (log, show error/snackbar, etc.)
+    // For now, we’ll just print a warning
+    print("⚠️ Store is null! _menuItemBox not initialized.");
+  }
     _loadCategories();
     // Initialize with default values
     _gstRateController.text = '0.0'; // Default GST rate
     _cessRateController.text = '0.0'; // Default CESS rate
+
+    if (widget.item != null) {
+      final item = widget.item!;
+      nameController.text = item.name;
+      sellPriceController.text = item.sellPrice;
+      sellPriceType = item.sellPriceType;
+      selectedCategory = item.category;
+      mrpController.text = item.mrp.toString();
+      purchasePriceController.text = item.purchasePrice.toString();
+      acSellPrice1Controller.text = item.acSellPrice.toString();
+      nonAcSellPrice1Controller.text = item.nonAcSellPrice.toString();
+      onlineDeliveryPriceController.text = item.onlineDeliveryPrice.toString();
+      onlineSellPriceController.text = item.onlineSellPrice.toString();
+      hsnCodeController.text = item.hsnCode.toString();
+      itemCodeController.text = item.itemCode.toString();
+      barCodeController.text = item.barCode.toString();
+      barCode2Controller.text = item.barCode2.toString();
+      availableController.text = item.available.toString();
+      adjustStockController.text = item.adjustStock.toString();
+      gstRateController.text = item.gstRate.toString();
+      _cessRateController.text = item.cessRate.toString();
+      _withTaxController.text = item.withTax.toString();
+      _imagePath = item.imagePath;
+      if (_imagePath != null) {
+        _image = File(_imagePath!);
+      }
+    }
+  
   }
 
   @override
@@ -107,38 +143,47 @@ class _AddItemPageState extends State<AddItemPage> {
       });
     }
   }
+Future<void> _saveItem() async {
+  if (_formKey.currentState!.validate()) {
+    final isEditing = widget.item != null;
+    final menuItem = MenuItem(
+      id: isEditing ? widget.item!.id : 0,
+      name: nameController.text,
+      sellPrice: sellPriceController.text,
+      sellPriceType: sellPriceType,
+      category: selectedCategory ?? '',
+      mrp: mrpController.text,
+      purchasePrice: purchasePriceController.text,
+      acSellPrice: acSellPrice1Controller.text,
+      nonAcSellPrice: nonAcSellPrice1Controller.text,
+      onlineDeliveryPrice: onlineDeliveryPriceController.text,
+      onlineSellPrice: onlineSellPriceController.text,
+      hsnCode: hsnCodeController.text,
+      itemCode: itemCodeController.text,
+      barCode: barCodeController.text,
+      barCode2: barCode2Controller.text,
+      imagePath: _imagePath,
+      available: int.tryParse(availableController.text) ?? 1,
+      adjustStock: int.tryParse(adjustStockController.text) ?? 1,
+      gstRate: double.tryParse(_gstRateController.text) ?? 0.0,
+      cessRate: double.tryParse(_cessRateController.text) ?? 0.0,
+      withTax: bool.tryParse(_withTaxController.text) ?? false,
+    );
 
-  Future<void> _saveItem() async {
-    if (_formKey.currentState!.validate()) {
-      final menuItem = MenuItem(
-        name: nameController.text,
-        sellPrice: sellPriceController.text,
-        sellPriceType: sellPriceType,
-        category: selectedCategory?? '',
-        mrp: mrpController.text,
-        purchasePrice: purchasePriceController.text,
-        acSellPrice: acSellPrice1Controller.text,
-        nonAcSellPrice: nonAcSellPrice1Controller.text,
-        onlineDeliveryPrice: onlineDeliveryPriceController.text,
-        onlineSellPrice: onlineSellPriceController.text,
-        hsnCode: hsnCodeController.text,
-        itemCode: itemCodeController.text,
-        barCode: barCodeController.text,
-        barCode2: barCode2Controller.text,
-        imagePath: _imagePath,
-        available: int.tryParse(availableController.text) ?? 1,
-        adjustStock: int.tryParse(adjustStockController.text) ?? 1,
-        gstRate: double.tryParse(_gstRateController.text) ?? 0.0,
-        cessRate: double.tryParse(_cessRateController.text) ?? 0.0,
-        withTax: bool.tryParse(_withTaxController.text) ?? false,
-      );
-      _menuItemBox.put(menuItem);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Item Saved')),
-      );
-      Navigator.pop(context);
-    }
+    final id = _menuItemBox.put(menuItem); // ✅ get actual ID from ObjectBox
+    final updatedItem = _menuItemBox.get(id); // ✅ fetch saved version from disk
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Item Saved')),
+    );
+
+
+  //print(updatedItem);
+
+    Navigator.pop(context, updatedItem); // ✅ Return fresh object to calling page
   }
+}
+
 
   void _loadCategories() {
     final items = _menuItemBox.getAll();
@@ -156,9 +201,10 @@ class _AddItemPageState extends State<AddItemPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.item != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text("New Item"),
+        title: Text(isEditing ? "Edit Item" : "New Item"),
         backgroundColor: Colors.purple.shade700,
       ),
       body: SingleChildScrollView(
